@@ -1,0 +1,20 @@
+FROM balenalib/%%RESIN_MACHINE_NAME%%-alpine-python:3.7.0-build-20181207 as base
+
+WORKDIR /tmp
+
+RUN \
+  apk update && apk add --no-cache bash git openssh && \
+  pip3.7 install --no-cache-dir python-networkmanager lockfile aiohttp aiohttp-cors samtecdeviceshare==2.2.1 && \
+  echo "Finished installing samtecdeviceshare!"
+
+FROM balenalib/%%RESIN_MACHINE_NAME%%-alpine-python:3.7.0-run-20181207
+
+ENV APP_IMG_PATH=/usr/src/app/img.png
+
+WORKDIR /usr/src/app
+
+COPY img.png /usr/src/app/img.png
+COPY --from=base /usr/local/lib/python3.7/site-packages /usr/local/lib/python3.7/site-packages
+RUN rm -rf /usr/local/lib/python3.7/test
+
+CMD [ "python3.7", "-m", "samtecdeviceshare.server" ]
